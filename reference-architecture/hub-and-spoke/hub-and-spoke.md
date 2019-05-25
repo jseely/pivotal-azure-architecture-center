@@ -8,4 +8,4 @@ Below is the basic architecture of what this lab will have you set up.
 
 ## Deploy the Solution
 
-Follow the Deploy the Solution section from the [Azure Hub and Spoke Reference Architecture](/azure-architecture-center/docs/reference-architectures/hybrid-networking/hub-and-spoke.md)
+Follow the Deploy the Solution section from the [Azure Hub and Spoke Reference Architecture](https://github.com/MicrosoftDocs/architecture-center/blob/184c22b2e8af750ce1a9090389f6a228bf40466c/docs/reference-architectures/hybrid-networking/hub-spoke.md#deploy-the-solution)
