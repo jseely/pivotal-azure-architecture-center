@@ -7,3 +7,9 @@ Pivotal patterns & practices, modeled after Microsoft patterns & practices.
 Below is a collection of reference architectures for Pivotal products deployed on top of Microsoft's Azure.
 
 * [Hub and Spoke](reference-architecture/hub-and-spoke)
+
+## Tutorials
+
+Below is a collection of tutorials to learn about specific topics on top of Azure.
+
+* [Resource Groups & Permissions](tutorials/resource-group-permissions)
