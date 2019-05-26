@@ -78,7 +78,7 @@ In your PAS Resource Group you now have an Azure DNS Zone that holds DNS records
     nslookup <envName>.<dnsSuffix>
     ```
 
-Before continuing on let's also add a DNS record for your opsman VM.
+#### Before continuing on let's also add a DNS record for your opsman VM.
 
 1. Lookup the ip address of your opsman VM
     ```
