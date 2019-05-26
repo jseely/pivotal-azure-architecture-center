@@ -213,6 +213,119 @@ Gateway: <.1 address from CIDR>
 1. Click `Review Pending Changes`
 1. Click `Apply Changes`
 
+### Add Tiles to Operations Manager
+
+1. Before we connect to the Opsman VM lets reset the ssh key
+```
+az vm user update -u ubuntu --ssh-key-value "$(cat id_rsa.pub)" -n <envName>-ops-manager-vm -g <envName>
+```
+1. SSH into the Opsman VM
+```
+ssh-add id_rsa
+ssh ubuntu@ops.<envName>.<dnsSuffix>
+```
+1. Download the Pivotal Application Service and Microsoft Azure Service Broker Tiles
+```
+wget -O "pas.tile" --post-data="" --header="Authorization: Token <pivnet_legacy_token>" "https://network.pivotal.io/api/v2/products/elastic-runtime/releases/366062/product_files/378183/download"
+wget -O "pas.tile" --post-data="" --header="Authorization: Token <pivnet_legacy_token>" "https://network.pivotal.io/api/v2/products/azure-service-broker/releases/282392/product_files/294549/download"
+```
+1. Upload the tiles to Opsman
+```
+uaac target localhost/uaa --skip-ssl-validation
+uaac token owner get opsman <opsman_username> -s "" -p <opsman_password>
+APITOKEN=$(uaac contexts | grep "localhost" -A6 | grep access_token | cut -d ':' -f  2 | cut -d ' ' -f 2)
+
+curl "https://localhost/api/v0/available_products" -F "product[file]=@pas.tile" -X POST  -H "Authorization: Bearer $APITOKEN" -k -o output --progress-bar
+curl "https://localhost/api/v0/available_products" -F "product[file]=@masb.tile" -X POST  -H "Authorization: Bearer $APITOKEN" -k -o output --progress-bar
+```
+
+### Configure Pivotal Application Service
+
+1. Navigate to Opsman website `https://ops.<envName>.<dnsSuffix>`
+1. From the left pane, click the `+` under `Pivotal Application Service`
+1. Click on the Pivotal Application Service Tile
+
+#### Assign AZs and Network
+
+1. Select `zone-1` to `Place singleton jobs in`
+1. Select `zone-1`, `zone-2` and `zone-3` to `Balance other jobs in`
+1. Select under `Network` the `pas` network
+1. Click `Save`
+
+#### Domains
+
+1. Fill out the Domains section
+```
+System Domain: sys.<envName>.<dnsSuffix>
+Apps Domain: apps.<envName>.<dnsSuffix>
+```
+1. Click `Save`
+
+#### Networking
+
+1. Under `Certificates and Private Keys for HAProxy and Router` click `Add`
+1. Fill out the information as follows
+```
+Name: Let's Encrypt Cert
+Certificate PEM: $(cat acme-workspace/<envName>.<dnsSuffix>/fullchain.cer)
+Private Key PEM: $(cat acme-workspace/<envName>.<dnsSuffix>/<envName>.<dnsSuffix>.key)
+```
+1. Set `Certificate Authorities Trusted by Router and HAProxy` to the Let's Encrypt Root CA Cert
+1. Select `TLS terminated for the first time at the Router`
+1. `Disable` the `HAProxy forwards requests to Router over TLS.` feature
+1. Uncheck `Disable SSL certificate verification for this environment`
+1. Click `Save`
+
+#### Application Containers
+
+1. Select `Routinely clean up Cell disk-space`
+1. `Disable` the NFSv3 volume services feature.
+1. Click `Save`
+
+#### Application Security Groups
+
+1. Type `X` in the textbox to Acknowledge that the Application Service administrator team is responsible for setting appropriate Application Security Groups to control application network policy.
+1. Click `Save`
+
+#### UAA
+
+1. Fill out `SAML Service Provider Credentials`
+```
+Certificate PEM: $(cat acme-workspace/<envName>.<dnsSuffix>/fullchain.cer)
+Private Key PEM: $(cat acme-workspace/<envName>.<dnsSuffix>/<envName>.<dnsSuffix>.key)
+```
+1. Click `Save`
+
+#### CredHub
+
+1. Provide an `Encryption Key` by clicking `Add`
+  * Set the `Name` of the key
+  * Set a `Key` that will be used to encrypt your CredHub information
+  * Select the `Primary` checkbox
+1. Click `Save`
+
+#### Internal MySQL
+
+1. Set an `E-mail address`, the MySQL service will send alerts when the cluster experiences a replication issue or a node is not allowed to auto-rejoin the cluster.
+1. Click `Save`
+
+#### Cloud Controller
+
+1. In the textboxt under `Type "X" to acknowledge that you have no applications running with cflinuxfs2.` type `X`
+1. Click `Save`
+
+#### Resource Config
+
+1. Under the `Load Balancers` column set the following values
+  * Router: <envName>-web-lb
+  * Diego Brain: <envName>-diego-ssh-lb
+1. Click `Save`
+
+#### Apply Changes
+
+1. Click `INSTALLATION DASHBOARD`
+1. Click `REVIEW PENDING CHANGES`
+1. Click `APPLY CHANGES`
 
 ## Additional Tooling
 
