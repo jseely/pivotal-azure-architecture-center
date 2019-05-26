@@ -114,6 +114,7 @@ In this section we will generate trusted certificates via Let's Encrypt.
       -d "*.login.sys.$DOMAIN" \
       -d "*.uaa.sys.$DOMAIN"
     ```
+1. Your certs can be found in the `acme-workspace/<envName>.<dnsSuffix>` directory.
 
 ### Configure Bosh Director
 
