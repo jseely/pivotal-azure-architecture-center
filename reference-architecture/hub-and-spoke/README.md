@@ -11,5 +11,5 @@ Below is the basic architecture of what this lab series will have you set up.
 ## Table of Contents
 
 1. [Deploy Azure Hub and Spoke Reference Architecture](hub-and-spoke.md)
-1. [Deploy Pivotal Control Plane on Spoke Network](control-plane)
-1. [Deploy Pivotal Application Service on Spoke Network](pas)
+1. [Deploy Pivotal Control Plane on Spoke Network](control-plane.md)
+1. [Deploy Pivotal Application Service on Spoke Network](pas.md)
