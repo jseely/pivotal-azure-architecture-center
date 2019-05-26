@@ -25,7 +25,7 @@ echo $ENVIRONMENT | jq '.' > $ENV_NAME.env.json
 
 
 # Create VNet
-az network vnet create --name pcf-vnet \
+az network vnet create --name vnet \
   --resource-group $NETWORK_RG --location $LOCATION \
   --address-prefixes 10.0.0.0/16
 

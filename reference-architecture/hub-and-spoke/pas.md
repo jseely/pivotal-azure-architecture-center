@@ -20,74 +20,74 @@ Note: All `<variable>` notation in this lab should be interpretted as being take
 In this section we will use Terraform to pave the infrastructure necessary for Pivotal Application Service. Upon completion you will have all VNet resources deployed to your <network_rg> and all PAS components deployed to your <pas_rg>.
 
 1. Use the `clientId`, `clientSecret` and `tenant` from your environment file to log into the Azure CLI as your Service Principal
-```
-az login --service-principal --username <clientId> --password <clientSecret> --tenant <tenant>
-```
+    ```
+    az login --service-principal --username <clientId> --password <clientSecret> --tenant <tenant>
+    ```
 1. Delegate `Owner` permissions over the two resource groups to your AAD account. This will enable you to see the resource groups in your Azure Portal. (Substitute `<subscription>`, `<network_rg>` and `<pas_rg>` with the corresponding values from your environment file)
-```
-az role assignment create --assignee "<your_aad_email>" --role Owner --scope /subscription/<subscription>/resourcegroups/<network_rg>
-az role assignment create --assignee "<your_aad_email>" --role Owner --scope /subscription/<subscription>/resourcegroups/<pas_rg>
-```
+    ```
+    az role assignment create --assignee "<your_aad_email>" --role Owner --scope /subscription/<subscription>/resourcegroups/<network_rg>
+    az role assignment create --assignee "<your_aad_email>" --role Owner --scope /subscription/<subscription>/resourcegroups/<pas_rg>
+    ```
 1. (Optional) Log back into your personal account via the CLI (You now have just as much permission over these resources as your Service Principal)
-```
-az login
-az account set --subscription <subscription>
-```
+    ```
+    az login
+    az account set --subscription <subscription>
+    ```
 1. Clone the `terraforming-azure` repo and navigate to the `terraforming-pas` directory. I reference my fork in the command below as plugable VNets are not yet supported in `pivotal-cf/terraforming-azure`.
-```
-git clone git@github.com:jseely/terraforming-azure.git
-cd terraforming-azure/terraforming-pas
-```
+    ```
+    git clone git@github.com:jseely/terraforming-azure.git
+    cd terraforming-azure/terraforming-pas
+    ```
 1. Create a `terraform.tfvars` file with the following content. Replace all `<variable>` references with values from the environment file. 
-```
-subscription_id = "<subscription>"
-tenant_id = "<tenant>"
-client_id = "<clientId>"
-client_secret = "<clientSecret>"
+    ```
+    subscription_id = "<subscription>"
+    tenant_id = "<tenant>"
+    client_id = "<clientId>"
+    client_secret = "<clientSecret>"
 
-env_name = "<envName>"
-env_short_name = "<storageAccountPrefix>"
-location = "<location>"
-ops_manager_image_uri = "YOUR-OPSMAN-IAMGE-URI"
-dns_suffix = "<dnsSuffix>"
-vm_admin_username = "YOUR-ADMIN-USERNAME"
+    env_name = "<envName>"
+    env_short_name = "<storageAccountPrefix>"
+    location = "<location>"
+    ops_manager_image_uri = "YOUR-OPSMAN-IAMGE-URI"
+    dns_suffix = "<dnsSuffix>"
+    vm_admin_username = "YOUR-ADMIN-USERNAME"
 
-pcf_vnet_rg = "<network_rg>"
-```
+    pcf_vnet_rg = "<network_rg>"
+    ```
 1. Replace `YOUR-OPSMAN-IMAGE-URI` with the URL for the Ops Manager Azure image you want to boot. You can find this in the PDF included with the Ops Manager release on [Pivotal Network](https://network.pivotal.io/).
 1. Replace `YOUR-ADMIN-USERNAME` with a username of your choice
 1. Initialize the directory based on the `terraform.tfvars` file you have created
-```
-terraform init
-```
+    ```
+    terraform init
+    ```
 1. Apply the terraform template
-```
-terraform apply
-```
+    ```
+    terraform apply
+    ```
 
 ### Configure DNS Zone
 
 In your PAS Resource Group you now have an Azure DNS Zone that holds DNS records for all the PAS components. Let's set up the NS record in the parent Zone to have DNS lookup request routed to your Azure DNS Zone.
 
 1. Get the list of nameservers from your Azure DNS Zone and give this to your lab instructor to have them add your Zone to the parent zone.
-```
-az network dns zone show -g <envName> -n <envName>.<dnsSuffix>
-```
+    ```
+    az network dns zone show -g <envName> -n <envName>.<dnsSuffix>
+    ```
 1. Validate that your DNS Zone is configured correctly. Compare the NS Lookup result to the record in the DNS Zone for `apps.sys.<envName>.<dnsSuffix>`. (You can find the DNS Zone in the Azure Portal under `Resource Groups > <envName> > <envName>.<dnsSuffix>`)
-```
-nslookup <envName>.<dnsSuffix>
-```
+    ```
+    nslookup <envName>.<dnsSuffix>
+    ```
 
 Before continuing on let's also add a DNS record for your opsman VM.
 
 1. Lookup the ip address of your opsman VM
-```
-az vm list-ip-addresses -g <envName> -n <envName>-ops-manager-vm
-```
+    ```
+    az vm list-ip-addresses -g <envName> -n <envName>-ops-manager-vm
+    ```
 1. Create a new A Record in your DNS Zone for the public IP address
-```
-az network dns record-set a add-record -g <envName> -z <envName>.<dnsSuffix> -n ops -a <public_ip_from_previous_step>
-```
+    ```
+    az network dns record-set a add-record -g <envName> -z <envName>.<dnsSuffix> -n ops -a <public_ip_from_previous_step>
+    ```
 
 ### Generate Trusted Certificates
 
@@ -95,25 +95,25 @@ In this section we will generate trusted certificates via Let's Encrypt.
 
 1. [Install Docker](https://docs.docker.com/docker-for-mac/install/)
 1. Use docker to run `acme.sh` (Replace values from environment file)
-```
-export DOMAIN="<envName>.<dnsSuffix>"
-sudo mkdir -p acme-workspace/{config,work,logs}
-sudo docker run \
-  -v "$(pwd)/acme-workspace:/acme.sh" \
-  -e "AZUREDNS_SUBSCRIPTIONID=<subscription>" \
-  -e "AZUREDNS_TENANTID=<tenant>" \
-  -e "AZUREDNS_APPID=<clientId>" \
-  -e "AZUREDNS_CLIENTSECRET=<clientSecret>" \
-  neilpang/acme.sh --issue --dns dns_azure \
-  -d "$DOMAIN" \
-  -d "ops.$DOMAIN" \
-  -d "harbor.$DOMAIN" \
-  -d "*.sys.$DOMAIN" \
-  -d "*.apps.$DOMAIN" \
-  -d "*.mesh.apps.$DOMAIN" \
-  -d "*.login.sys.$DOMAIN" \
-  -d "*.uaa.sys.$DOMAIN"
-```
+    ```
+    export DOMAIN="<envName>.<dnsSuffix>"
+    sudo mkdir -p acme-workspace/{config,work,logs}
+    sudo docker run \
+      -v "$(pwd)/acme-workspace:/acme.sh" \
+      -e "AZUREDNS_SUBSCRIPTIONID=<subscription>" \
+      -e "AZUREDNS_TENANTID=<tenant>" \
+      -e "AZUREDNS_APPID=<clientId>" \
+      -e "AZUREDNS_CLIENTSECRET=<clientSecret>" \
+      neilpang/acme.sh --issue --dns dns_azure \
+      -d "$DOMAIN" \
+      -d "ops.$DOMAIN" \
+      -d "harbor.$DOMAIN" \
+      -d "*.sys.$DOMAIN" \
+      -d "*.apps.$DOMAIN" \
+      -d "*.mesh.apps.$DOMAIN" \
+      -d "*.login.sys.$DOMAIN" \
+      -d "*.uaa.sys.$DOMAIN"
+    ```
 
 ### Configure Bosh Director
 
@@ -129,65 +129,65 @@ In this section we will configure Bosh Director in our new foundation.
 #### Azure Config
 
 1. Generate a new SSH Key, when prompted do not provide a password.
-```
-ssh-keygen -t rsa -b 4096 -f id_rsa
-```
+    ```
+    ssh-keygen -t rsa -b 4096 -f id_rsa
+    ```
 1. Configure all the values. (Angle brackets are variables from the env file unless otherwise indicated, `$(...)` notation is the output of the command in parenthesis)
-```
-Subscription ID: <subscription>
-Tenant ID: <tenant>
-Application ID: <clientId>
-Client Secret: <clientSecret>
-Resource Group Name: <pas_rg>
-BOSH Storage Account Name: $(terraform output bosh_root_storage_account)
-SSH Public Key: $(cat id_rsa.pub)
-SSH Private Key: $(cat id_rsa)
-```
+    ```
+    Subscription ID: <subscription>
+    Tenant ID: <tenant>
+    Application ID: <clientId>
+    Client Secret: <clientSecret>
+    Resource Group Name: <pas_rg>
+    BOSH Storage Account Name: $(terraform output bosh_root_storage_account)
+    SSH Public Key: $(cat id_rsa.pub)
+    SSH Private Key: $(cat id_rsa)
+    ```
 1. Click `Save`
 
 #### Director Config
 
 1. Configure all the values
-```
-NTP Servers (comma delimited): 0.us.pool.ntp.org
-Enable VM Resurrector Plugin: X
-Enable Post Deploy Scripts: X
-Enable bosh deploy retries: X
-Skip Director Drain Lifecycle: X
-Store BOSH Job Credentials on tmpfs (beta): X
-Keep Unreachable Director VMs: X
-```
+    ```
+    NTP Servers (comma delimited): 0.us.pool.ntp.org
+    Enable VM Resurrector Plugin: X
+    Enable Post Deploy Scripts: X
+    Enable bosh deploy retries: X
+    Skip Director Drain Lifecycle: X
+    Store BOSH Job Credentials on tmpfs (beta): X
+    Keep Unreachable Director VMs: X
+    ```
 1. Click `Save`
 
 #### Create Networks
 
 1. Click `Add Network` and fill out the details for the `infrastructure` network
-```
-Name: infrastructure
-Azure Network Name: <network_rg>/<envName>-virtual-network/<envName>-infrastructure-subnet
-CIDR: $(az network vnet show -g <network_rg> -n <envName>-virtual-network | jq '.subnets[] | select(.name == "<envName>-infrastructure-subnet") | .addressPrefix' -r)
-Reserved IP Ranges: <first 9 addresses starting at 1 from CIDR>
-DNS: 168.63.129.16
-Gateway: <.1 address from CIDR>
-```
+    ```
+    Name: infrastructure
+    Azure Network Name: <network_rg>/vnet/<envName>-infrastructure-subnet
+    CIDR: $(az network vnet show -g <network_rg> -n vnet | jq '.subnets[] | select(.name == "<envName>-infrastructure-subnet") | .addressPrefix' -r)
+    Reserved IP Ranges: <first 9 addresses starting at 1 from CIDR>
+    DNS: 168.63.129.16
+    Gateway: <.1 address from CIDR>
+    ```
 1. Click `Add Network` and fill out the details for the `pas` network
-```
-Name: pas
-Azure Network Name: <network_rg>/<envName>-virtual-network/<envName>-pas-subnet
-CIDR: $(az network vnet show -g <network_rg> -n <envName>-virtual-network | jq '.subnets[] | select(.name == "<envName>-pas-subnet") | .addressPrefix' -r)
-Reserved IP Ranges: <first 9 addresses starting at 1 from CIDR>
-DNS: 168.63.129.16
-Gateway: <.1 address from CIDR>
-```
+    ```
+    Name: pas
+    Azure Network Name: <network_rg>/vnet/<envName>-pas-subnet
+    CIDR: $(az network vnet show -g <network_rg> -n vnet | jq '.subnets[] | select(.name == "<envName>-pas-subnet") | .addressPrefix' -r)
+    Reserved IP Ranges: <first 9 addresses starting at 1 from CIDR>
+    DNS: 168.63.129.16
+    Gateway: <.1 address from CIDR>
+    ```
 1. Click `Add Network` and fill out the details for the `services` network
-```
-Name: pas
-Azure Network Name: <network_rg>/<envName>-virtual-network/<envName>-services-subnet
-CIDR: $(az network vnet show -g <network_rg> -n <envName>-virtual-network | jq '.subnets[] | select(.name == "<envName>-services-subnet") | .addressPrefix' -r)
-Reserved IP Ranges: <first 9 addresses starting at 1 from CIDR>
-DNS: 168.63.129.16
-Gateway: <.1 address from CIDR>
-```
+    ```
+    Name: pas
+    Azure Network Name: <network_rg>/vnet/<envName>-services-subnet
+    CIDR: $(az network vnet show -g <network_rg> -n vnet | jq '.subnets[] | select(.name == "<envName>-services-subnet") | .addressPrefix' -r)
+    Reserved IP Ranges: <first 9 addresses starting at 1 from CIDR>
+    DNS: 168.63.129.16
+    Gateway: <.1 address from CIDR>
+    ```
 1. Click `Save`
 
 #### Assign AZs and Networks
@@ -216,28 +216,28 @@ Gateway: <.1 address from CIDR>
 ### Add Tiles to Operations Manager
 
 1. Before we connect to the Opsman VM lets reset the ssh key
-```
-az vm user update -u ubuntu --ssh-key-value "$(cat id_rsa.pub)" -n <envName>-ops-manager-vm -g <envName>
-```
+    ```
+    az vm user update -u ubuntu --ssh-key-value "$(cat id_rsa.pub)" -n <envName>-ops-manager-vm -g <envName>
+    ```
 1. SSH into the Opsman VM
-```
-ssh-add id_rsa
-ssh ubuntu@ops.<envName>.<dnsSuffix>
-```
+    ```
+    ssh-add id_rsa
+    ssh ubuntu@ops.<envName>.<dnsSuffix>
+    ```
 1. Download the Pivotal Application Service and Microsoft Azure Service Broker Tiles
-```
-wget -O "pas.tile" --post-data="" --header="Authorization: Token <pivnet_legacy_token>" "https://network.pivotal.io/api/v2/products/elastic-runtime/releases/366062/product_files/378183/download"
-wget -O "pas.tile" --post-data="" --header="Authorization: Token <pivnet_legacy_token>" "https://network.pivotal.io/api/v2/products/azure-service-broker/releases/282392/product_files/294549/download"
-```
+    ```
+    wget -O "pas.tile" --post-data="" --header="Authorization: Token <pivnet_legacy_token>" "https://network.pivotal.io/api/v2/products/elastic-runtime/releases/366062/product_files/378183/download"
+    wget -O "pas.tile" --post-data="" --header="Authorization: Token <pivnet_legacy_token>" "https://network.pivotal.io/api/v2/products/azure-service-broker/releases/282392/product_files/294549/download"
+    ```
 1. Upload the tiles to Opsman
-```
-uaac target localhost/uaa --skip-ssl-validation
-uaac token owner get opsman <opsman_username> -s "" -p <opsman_password>
-APITOKEN=$(uaac contexts | grep "localhost" -A6 | grep access_token | cut -d ':' -f  2 | cut -d ' ' -f 2)
+    ```
+    uaac target localhost/uaa --skip-ssl-validation
+    uaac token owner get opsman <opsman_username> -s "" -p <opsman_password>
+    APITOKEN=$(uaac contexts | grep "localhost" -A6 | grep access_token | cut -d ':' -f  2 | cut -d ' ' -f 2)
 
-curl "https://localhost/api/v0/available_products" -F "product[file]=@pas.tile" -X POST  -H "Authorization: Bearer $APITOKEN" -k -o output --progress-bar
-curl "https://localhost/api/v0/available_products" -F "product[file]=@masb.tile" -X POST  -H "Authorization: Bearer $APITOKEN" -k -o output --progress-bar
-```
+    curl "https://localhost/api/v0/available_products" -F "product[file]=@pas.tile" -X POST  -H "Authorization: Bearer $APITOKEN" -k -o output --progress-bar
+    curl "https://localhost/api/v0/available_products" -F "product[file]=@masb.tile" -X POST  -H "Authorization: Bearer $APITOKEN" -k -o output --progress-bar
+    ```
 
 ### Configure Pivotal Application Service
 
@@ -255,21 +255,21 @@ curl "https://localhost/api/v0/available_products" -F "product[file]=@masb.tile"
 #### Domains
 
 1. Fill out the Domains section
-```
-System Domain: sys.<envName>.<dnsSuffix>
-Apps Domain: apps.<envName>.<dnsSuffix>
-```
+    ```
+    System Domain: sys.<envName>.<dnsSuffix>
+    Apps Domain: apps.<envName>.<dnsSuffix>
+    ```
 1. Click `Save`
 
 #### Networking
 
 1. Under `Certificates and Private Keys for HAProxy and Router` click `Add`
 1. Fill out the information as follows
-```
-Name: Let's Encrypt Cert
-Certificate PEM: $(cat acme-workspace/<envName>.<dnsSuffix>/fullchain.cer)
-Private Key PEM: $(cat acme-workspace/<envName>.<dnsSuffix>/<envName>.<dnsSuffix>.key)
-```
+    ```
+    Name: Let's Encrypt Cert
+    Certificate PEM: $(cat acme-workspace/<envName>.<dnsSuffix>/fullchain.cer)
+    Private Key PEM: $(cat acme-workspace/<envName>.<dnsSuffix>/<envName>.<dnsSuffix>.key)
+    ```
 1. Set `Certificate Authorities Trusted by Router and HAProxy` to the Let's Encrypt Root CA Cert
 1. Select `TLS terminated for the first time at the Router`
 1. `Disable` the `HAProxy forwards requests to Router over TLS.` feature
@@ -290,10 +290,10 @@ Private Key PEM: $(cat acme-workspace/<envName>.<dnsSuffix>/<envName>.<dnsSuffix
 #### UAA
 
 1. Fill out `SAML Service Provider Credentials`
-```
-Certificate PEM: $(cat acme-workspace/<envName>.<dnsSuffix>/fullchain.cer)
-Private Key PEM: $(cat acme-workspace/<envName>.<dnsSuffix>/<envName>.<dnsSuffix>.key)
-```
+    ```
+    Certificate PEM: $(cat acme-workspace/<envName>.<dnsSuffix>/fullchain.cer)
+    Private Key PEM: $(cat acme-workspace/<envName>.<dnsSuffix>/<envName>.<dnsSuffix>.key)
+    ```
 1. Click `Save`
 
 #### CredHub
