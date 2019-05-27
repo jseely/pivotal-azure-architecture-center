@@ -328,6 +328,53 @@ In this section we will configure Bosh Director in our new foundation.
 1. Click `REVIEW PENDING CHANGES`
 1. Click `APPLY CHANGES`
 
+### Configure Microsoft Azure Service Broker
+
+1. Navigate to Opsman website `https://ops.<envName>.<dnsSuffix>`
+1. From the left pane, click the `+` under `Microsoft Azure Service Broker`
+1. Downlaod the `Ubuntu Xenial Stemcell for Azure 170.76` from `https://network.pivotal.io/products/stemcells-ubuntu-xenial#/releases/376271`
+1. Back in Opsman go to the `STEMCELL LIBRARY` and on the `Microsoft Azure Service Broker` select `Upload Stemcell` and enable it for that tile
+1. Click on the `Microsoft Azure Service Broker` tile on the `INSTALLATION DASHBOARD`
+
+#### Assign AZs and Networks
+
+1. Select `zone-1` under `Place singleton jobs in`
+1. Select all three `zone-1`, `zone-2` and `zone-3` under `Balance other jobs in`
+1. Under `Network` select `services`
+1. Click `Save`
+
+#### Azure Config
+
+1. Fill out the values as follows
+    ```
+    Subscription Id: <subscription>
+    Tenant Id: <tenant>
+    Client Id: <clientId>
+    Client Secret: <clientSecret>
+    ```
+1. Click `Save`
+
+#### Broker Config
+
+1. Open in another tab `https://portal.azure.com`
+1. Click `Create a Resource` in the top left
+1. Search for `SQL Database` and click `Create`
+1. Under `Resource Group` select your <envName>
+1. Set `Database name` to `masb-db`
+1. Under `Server` click `Create new`, fill out and record the details of your new server
+1. Click `Review + Create`
+1. Click `Create`
+1. Go back to Opsman > MASB > Broker Config
+1. Fill out all the details based on the details of the SQL Database that you created
+1. Create a `Database Encryption Key` and record it somewhere safe
+1. Click `Save`
+
+#### Apply Changes
+
+1. Click `INSTALLATION DASHBOARD`
+1. Click `REVIEW PENDING CHANGES`
+1. Click `APPLY CHANGES`
+
 ## Additional Tooling
 
 This section contains instructions for how to set up environments and tear them down when instructing this lab content.
