@@ -50,7 +50,7 @@ In this section we will use Terraform to pave the infrastructure necessary for P
     location = "<location>"
     ops_manager_image_uri = "YOUR-OPSMAN-IAMGE-URI"
     dns_suffix = "<dnsSuffix>"
-    vm_admin_username = "YOUR-ADMIN-USERNAME"
+    vm_admin_username = "ubuntu"
 
     create_vnet = false
     vnet_name   = "vnet"
