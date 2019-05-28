@@ -52,6 +52,8 @@ In this section we will use Terraform to pave the infrastructure necessary for P
     dns_suffix = "<dnsSuffix>"
     vm_admin_username = "YOUR-ADMIN-USERNAME"
 
+    create_vnet = false
+    vnet_name   = "vnet"
     pcf_vnet_rg = "<network_rg>"
     ```
 1. Replace `YOUR-OPSMAN-IMAGE-URI` with the URL for the Ops Manager Azure image you want to boot. You can find this in the PDF included with the Ops Manager release on [Pivotal Network](https://network.pivotal.io/).
@@ -87,6 +89,17 @@ In your PAS Resource Group you now have an Azure DNS Zone that holds DNS records
 1. Create a new A Record in your DNS Zone for the public IP address
     ```
     az network dns record-set a add-record -g <envName> -z <envName>.<dnsSuffix> -n ops -a <public_ip_from_previous_step>
+    ```
+
+### Update OpsMan VM SSH Key
+
+1. Generate a new SSH Key, when prompted do not provide a password.
+    ```
+    ssh-keygen -t rsa -b 4096 -f id_rsa
+    ```
+1. Update the SSH key used for authentication on the Opsman VM
+    ```
+    az vm user update -u ubuntu --ssh-key-value "$(cat id_rsa.pub)" -n <envName>-ops-manager-vm -g <envName>
     ```
 
 ### Generate Trusted Certificates
@@ -129,10 +142,6 @@ In this section we will configure Bosh Director in our new foundation.
 
 #### Azure Config
 
-1. Generate a new SSH Key, when prompted do not provide a password.
-    ```
-    ssh-keygen -t rsa -b 4096 -f id_rsa
-    ```
 1. Configure all the values. (Angle brackets are variables from the env file unless otherwise indicated, `$(...)` notation is the output of the command in parenthesis)
     ```
     Subscription ID: <subscription>
@@ -182,7 +191,7 @@ In this section we will configure Bosh Director in our new foundation.
     ```
 1. Click `Add Network` and fill out the details for the `services` network
     ```
-    Name: pas
+    Name: services
     Azure Network Name: <network_rg>/vnet/<envName>-services-subnet
     CIDR: $(az network vnet show -g <network_rg> -n vnet | jq '.subnets[] | select(.name == "<envName>-services-subnet") | .addressPrefix' -r)
     Reserved IP Ranges: <first 9 addresses starting at 1 from CIDR>
@@ -216,10 +225,6 @@ In this section we will configure Bosh Director in our new foundation.
 
 ### Add Tiles to Operations Manager
 
-1. Before we connect to the Opsman VM lets reset the ssh key
-    ```
-    az vm user update -u ubuntu --ssh-key-value "$(cat id_rsa.pub)" -n <envName>-ops-manager-vm -g <envName>
-    ```
 1. SSH into the Opsman VM
     ```
     ssh-add id_rsa
@@ -238,6 +243,41 @@ In this section we will configure Bosh Director in our new foundation.
 
     curl "https://localhost/api/v0/available_products" -F "product[file]=@pas.tile" -X POST  -H "Authorization: Bearer $APITOKEN" -k -o output --progress-bar
     curl "https://localhost/api/v0/available_products" -F "product[file]=@masb.tile" -X POST  -H "Authorization: Bearer $APITOKEN" -k -o output --progress-bar
+    ```
+
+#### Update VM Skus
+
+When you first deploy Operations Manager it comes preconfigured with a number of Azure VM SKUs by default. Azure unfortunately has inconsistent availability of VM SKUs across Regions. In this section we update the VM SKUs available within OpsMan.
+
+1. Install `om` cli
+    ```
+    brew tap starkandwayne/cf
+    brew install om
+    ```
+1. Get the list of VMs currently configured in Opsman and save it to a new file `vm_types.json`
+    ```
+    om \
+    --skip-ssl-validation \
+    --target ops.<envName>.<dnsSuffix> \
+    --username <your_opsman_user> \
+    --password <your_opsman_password> \
+    curl -x GET --path /api/v0/vm_types \
+    > vm_types.json
+    ```
+1. Get the list of available VM SKUs, formatted to Opsman structured VM definitions and save it to a new file `available_vm_types.json`
+    ```
+    az vm list-sizes -l <location> | jq '{"vm_types": [.[] | {"name": .name, "ram": .memoryInMb, "ephemeral_disk": .resourceDiskSizeInMb, "cpu": .numberOfCores}]}' > available_vm_types.json
+    ```
+1. Add the VMs from the `available_vm_types.json` that you want to the `vm_types.json`. In `westus2` we should replace all `D_v2` and `DS_v2` with their corresponding `D_v3` and `DS_v3` alternatives.
+1. Put the new list of VMs into Opsman
+    ```
+    om \
+    --skip-ssl-validation \
+    --target ops.<envName>.<dnsSuffix> \
+    --username <your_opsman_user> \
+    --password <your_opsman_password> \
+    curl -x PUT --path /api/v0/vm_types \
+    --data "$(jq -c '.' vm_types.json
     ```
 
 ### Configure Pivotal Application Service
