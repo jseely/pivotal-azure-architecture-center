@@ -110,7 +110,7 @@ In this section we will generate trusted certificates via Let's Encrypt.
 1. Use docker to run `acme.sh` (Replace values from environment file)
     ```
     export DOMAIN="<envName>.<dnsSuffix>"
-    sudo mkdir -p acme-workspace/{config,work,logs}
+    mkdir -p acme-workspace/{config,work,logs}
     sudo docker run \
       -v "$(pwd)/acme-workspace:/acme.sh" \
       -e "AZUREDNS_SUBSCRIPTIONID=<subscription>" \
@@ -358,8 +358,8 @@ When you first deploy Operations Manager it comes preconfigured with a number of
 #### Resource Config
 
 1. Under the `Load Balancers` column set the following values
-  * Router: <envName>-web-lb
-  * Diego Brain: <envName>-diego-ssh-lb
+  * Router: &lt;envName&gt;-web-lb
+  * Diego Brain: &lt;envName&gt;-diego-ssh-lb
 1. Click `Save`
 
 #### Apply Changes
