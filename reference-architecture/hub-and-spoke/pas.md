@@ -277,7 +277,7 @@ When you first deploy Operations Manager it comes preconfigured with a number of
     --username <your_opsman_user> \
     --password <your_opsman_password> \
     curl -x PUT --path /api/v0/vm_types \
-    --data "$(jq -c '.' vm_types.json
+    --data "$(jq -c '.' vm_types.json)"
     ```
 
 ### Configure Pivotal Application Service
