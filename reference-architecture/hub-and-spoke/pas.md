@@ -35,7 +35,7 @@ In this section we will use Terraform to pave the infrastructure necessary for P
     ```
 1. Clone the `terraforming-azure` repo and navigate to the `terraforming-pas` directory. I reference my fork in the command below as plugable VNets are not yet supported in `pivotal-cf/terraforming-azure`.
     ```
-    git clone git@github.com:jseely/terraforming-azure.git
+    git clone https://github.com/jseely/terraforming-azure.git
     cd terraforming-azure/terraforming-pas
     ```
 1. Create a `terraform.tfvars` file with the following content. Replace all `<variable>` references with values from the environment file. 
