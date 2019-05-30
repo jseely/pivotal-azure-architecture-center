@@ -53,7 +53,7 @@ In this section we will use Terraform to pave the infrastructure necessary for P
     vm_admin_username = "ubuntu"
 
     create_vnet = false
-    vnet_name   = "vnet"
+    pcf_vnet_name   = "vnet"
     pcf_vnet_rg = "<network_rg>"
     ```
 1. Replace `YOUR-OPSMAN-IMAGE-URI` with the URL for the Ops Manager Azure image you want to boot. You can find this in the PDF included with the Ops Manager release on [Pivotal Network](https://network.pivotal.io/).
