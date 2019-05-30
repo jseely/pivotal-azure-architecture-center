@@ -77,7 +77,7 @@ In your PAS Resource Group you now have an Azure DNS Zone that holds DNS records
     ```
 1. Validate that your DNS Zone is configured correctly. Compare the NS Lookup result to the record in the DNS Zone for `apps.sys.<envName>.<dnsSuffix>`. (You can find the DNS Zone in the Azure Portal under `Resource Groups > <envName> > <envName>.<dnsSuffix>`)
     ```
-    nslookup <envName>.<dnsSuffix>
+    nslookup apps.sys.<envName>.<dnsSuffix>
     ```
 
 #### Before continuing on let's also add a DNS record for your opsman VM.
