@@ -233,7 +233,7 @@ In this section we will configure Bosh Director in our new foundation.
 1. Download the Pivotal Application Service and Microsoft Azure Service Broker Tiles
     ```
     wget -O "pas.tile" --post-data="" --header="Authorization: Token <pivnet_legacy_token>" "https://network.pivotal.io/api/v2/products/elastic-runtime/releases/366062/product_files/378183/download"
-    wget -O "pas.tile" --post-data="" --header="Authorization: Token <pivnet_legacy_token>" "https://network.pivotal.io/api/v2/products/azure-service-broker/releases/282392/product_files/294549/download"
+    wget -O "masb.tile" --post-data="" --header="Authorization: Token <pivnet_legacy_token>" "https://network.pivotal.io/api/v2/products/azure-service-broker/releases/282392/product_files/294549/download"
     ```
 1. Upload the tiles to Opsman
     ```
