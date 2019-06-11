@@ -133,7 +133,7 @@ In this section we will generate trusted certificates via Let's Encrypt.
 
 In this section we will configure Bosh Director in our new foundation.
 
-1. Navigate to Operations Manager `https://ops.<envName>.<dnsSuffix>`
+1. Navigate to Operations Manager `https://pcf.<envName>.<dnsSuffix>`
 1. Select `Internal Authentication`
 1. Give values for `Username`, `Password` and `Decryption Passphrase`
 1. Agree to the Terms and Conditions and click `Setup Authentication`
