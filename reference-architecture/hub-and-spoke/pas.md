@@ -266,7 +266,7 @@ When you first deploy Operations Manager it comes preconfigured with a number of
     ```
 1. Get the list of available VM SKUs, formatted to Opsman structured VM definitions and save it to a new file `available_vm_types.json`
     ```
-    az vm list-sizes -l <location> | jq '{"vm_types": [.[] | {"name": .name, "ram": .memoryInMb, "ephemeral_disk": .resourceDiskSizeInMb, "cpu": .numberOfCores}]}' > available_vm_types.json
+    az vm list-sizes -l <location> | jq '{"vm_types": [.[] | select (.name | endswith("_Promo") | not ) | {"name": .name, "ram": .memoryInMb, "ephemeral_disk": .resourceDiskSizeInMb, "cpu": .numberOfCores}]}' > available_vm_types.json
     ```
 1. Add the VMs from the `available_vm_types.json` that you want to the `vm_types.json`. In `westus2` we should replace all `D_v2` and `DS_v2` with their corresponding `D_v3` and `DS_v3` alternatives.
 1. Put the new list of VMs into Opsman
