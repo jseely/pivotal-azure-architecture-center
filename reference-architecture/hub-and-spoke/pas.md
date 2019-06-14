@@ -249,11 +249,7 @@ In this section we will configure Bosh Director in our new foundation.
 
 When you first deploy Operations Manager it comes preconfigured with a number of Azure VM SKUs by default. Azure unfortunately has inconsistent availability of VM SKUs across Regions. In this section we update the VM SKUs available within OpsMan.
 
-1. Install `om` cli
-    ```
-    brew tap starkandwayne/cf
-    brew install om
-    ```
+1. Install `om` cli. Find releases at [https://github.com/pivotal-cf/om/releases](https://github.com/pivotal-cf/om/releases)
 1. Get the list of VMs currently configured in Opsman and save it to a new file `vm_types.json`
     ```
     om \
